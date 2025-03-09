@@ -9,7 +9,6 @@ defmodule AskFlow.API.LLM do
   def get_llm_relevance_score_for_question(search_query, question) do
     options = [
       temperature: 1.0,
-      base_url: System.get_env("OPENAI_API_URL", "http://localhost:1234/v1"),
     ]
 
     question_title = question["title"]
@@ -55,7 +54,6 @@ defmodule AskFlow.API.LLM do
   def get_llm_score(question, answer) do
     options = [
       temperature: 1.0,
-      base_url: System.get_env("OPENAI_API_URL", "http://localhost:1234/v1"),
     ]
 
     question_title = question["title"]
@@ -92,9 +90,8 @@ defmodule AskFlow.API.LLM do
     |> Map.get(:message, %{})
     |> Map.get(:content, "-1")
     |> Integer.parse()
-    |> elem(0)
     |> case do
-        score when is_integer(score) ->
+        {score, _} ->
           score
         _ ->
           Logger.error("Failed to parse LLM score")
@@ -107,7 +104,6 @@ defmodule AskFlow.API.LLM do
 
     options = [
       temperature: 1.0,
-      base_url: System.get_env("OPENAI_API_URL", "http://localhost:1234/v1"),
       stream: true,
       stream_to: pid
     ]
