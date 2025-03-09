@@ -26,7 +26,15 @@ config :ask_flow,
   stack_overflow_base_url: System.get_env("STACK_OVERFLOW_BASE_URL") || "https://api.stackexchange.com/2.3",
   stack_overflow_user_agent: System.get_env("STACK_OVERFLOW_USER_AGENT") || "Askflow/1.0"
 
-if config_env() == :prod do
+# Configure OpenAI API
+config :ex_openai,
+  api_key: System.get_env("OPENAI_API_KEY", "dummy-api-key"),
+  organization_key: System.get_env("OPENAI_ORGANIZATION_KEY"),
+  base_url: System.get_env("OPENAI_API_URL", "http://localhost:1234/v1"),
+  http_options: [recv_timeout: 50_000]
+
+
+if config_env() in [:prod, :dev] do
   database_url =
     System.get_env("DATABASE_URL") ||
       raise """
@@ -61,6 +69,7 @@ if config_env() == :prod do
 
   config :ask_flow, AskFlowWeb.Endpoint,
     url: [host: host, port: 443, scheme: "https"],
+    adapter: Bandit.PhoenixAdapter,
     http: [
       # Enable IPv6 and bind on all interfaces.
       # Set it to  {0, 0, 0, 0, 0, 0, 0, 1} for local network only access.
@@ -69,7 +78,10 @@ if config_env() == :prod do
       ip: {0, 0, 0, 0, 0, 0, 0, 0},
       port: port
     ],
-    secret_key_base: secret_key_base
+    secret_key_base: secret_key_base,
+    pubsub_server: AskFlow.PubSub,
+    live_view: [signing_salt: "pcO6FQ97"],
+    server: true
 
   # ## SSL Support
   #

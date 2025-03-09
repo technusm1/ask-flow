@@ -14,6 +14,8 @@ config :swoosh, api_client: Swoosh.ApiClient.Finch, finch_name: AskFlow.Finch
 # Disable Swoosh Local Memory Storage
 config :swoosh, local: false
 
+config :ask_flow, AskFlow.Mailer, adapter: Swoosh.Adapters.Logger, level: :debug
+
 # Do not print debug messages in production
 config :logger, level: :info
 

@@ -1,0 +1,26 @@
+services:
+  app:
+    build:
+      context: .
+      target: prod  # ✅ Build the production stage
+    ports:
+      - "4000:4000"
+    environment:
+      MIX_ENV: prod
+      SECRET_KEY_BASE: "${SECRET_KEY_BASE}"
+      OPENAI_API_KEY: "${OPENAI_API_KEY}"
+      OPENAI_ORGANIZATION_KEY: "${OPENAI_ORGANIZATION_KEY}"
+      PHX_HOST: "localhost"
+      OPENAI_API_URL: "${OPENAI_API_URL}"
+      DATABASE_URL: "postgres://postgres:postgres@db:5432/ask_flow_prod"
+    depends_on:
+      - db
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ask_flow_prod
+    ports:
+      - "5432:5432"

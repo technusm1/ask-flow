@@ -61,13 +61,6 @@ config :logger, :console,
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
 
-# Configure OpenAI
-config :ex_openai,
-  api_key: System.get_env("OPENAI_API_KEY", "dummy-api-key"),
-  organization_key: System.get_env("OPENAI_ORGANIZATION_KEY"),
-  base_url: System.get_env("OPENAI_API_URL", "http://localhost:1234/v1"),
-  http_options: [recv_timeout: 50_000]
-
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{config_env()}.exs"

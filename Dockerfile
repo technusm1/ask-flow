@@ -1,61 +1,36 @@
-FROM elixir:1.14-alpine AS build
-
-# Install build dependencies
-RUN apk add --no-cache build-base npm git python3
-
+# 1️⃣ Base stage - Common dependencies
+FROM elixir AS base
+RUN apt update && apt install -y build-essential npm git curl postgresql-client
 WORKDIR /app
-
-# Install hex + rebar
-RUN mix local.hex --force && \
-    mix local.rebar --force
-
-# Set build ENV
-ENV MIX_ENV=prod
-
-# Install mix dependencies
 COPY mix.exs mix.lock ./
-RUN mix deps.get --only $MIX_ENV
-RUN mkdir config
+RUN mix local.hex --force && mix local.rebar --force
+RUN mix deps.get && mix deps.compile
+# Force compile bcrypt_elixir
+RUN mix deps.compile bcrypt_elixir --force
 
-# Copy config files
-COPY config/config.exs config/${MIX_ENV}.exs config/
-RUN mix deps.compile
-
-# Copy assets
-COPY assets assets
+# 2️⃣ Build stage - Only for production
+FROM base AS build
+ARG MIX_ENV=prod
+ENV MIX_ENV=${MIX_ENV}
+COPY config config
 COPY priv priv
-
-# Compile assets
-RUN mix assets.deploy
-
-# Copy the rest of the application
 COPY lib lib
-
-# Compile the application
+COPY assets assets
+RUN if [ "$MIX_ENV" = "prod" ]; then mix assets.deploy; fi
 RUN mix compile
+RUN if [ "$MIX_ENV" = "prod" ]; then mix release --path /app/release; fi
 
-# Generate the release
-RUN mix release
-
-# Start a new build stage
-FROM alpine:3.16 AS app
-
-RUN apk add --no-cache openssl ncurses-libs libstdc++
-
+# 3️⃣ Production runtime image
+FROM elixir AS prod
+RUN apt update && apt install -y bash openssl postgresql-client
 WORKDIR /app
+COPY --from=build /app/release ./
+COPY entrypoint.sh .
+RUN chmod +x entrypoint.sh
+CMD ["./entrypoint.sh"]
 
-# Copy the release from the build stage
-COPY --from=build /app/_build/prod/rel/ask_flow ./
-
-# Set environment variables
-ENV HOME=/app
-ENV PORT=4000
-ENV PHX_HOST=localhost
-ENV DATABASE_URL=ecto://postgres:postgres@db/ask_flow_prod
-ENV SECRET_KEY_BASE=your_secret_key_base_here
-
-# Expose the port
-EXPOSE 4000
-
-# Start the application
-CMD ["bin/ask_flow", "start"] 
+# 4️⃣ Development runtime image
+FROM base AS dev
+ARG MIX_ENV=dev
+ENV MIX_ENV=${MIX_ENV}
+CMD ["mix", "phx.server"]
