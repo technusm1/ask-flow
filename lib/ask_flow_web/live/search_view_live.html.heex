@@ -26,18 +26,15 @@
                   <b>Ask AI</b>
                 </button>
                 <form phx-change="sort_questions">
-                  <select
-                    name="sort_option"
-                    class="px-4 py-2 bg-white border rounded min-w-[200px]"
-                  >
+                  <select name="sort_option" class="px-4 py-2 bg-white border rounded min-w-[200px]">
                     <option value="" disabled selected={@sort_by == ""}>Sort by</option>
                     <option value="newest" selected={@sort_by == "newest"}>Newest</option>
                     <option value="oldest" selected={@sort_by == "oldest"}>Oldest</option>
                     <option value="highest_score" selected={@sort_by == "highest_score"}>Highest Score</option>
                     <option value="lowest_score" selected={@sort_by == "lowest_score"}>Lowest Score</option>
                     <option value="popularity" selected={@sort_by == "popularity"}>Popularity</option>
-                    <option value="highest_llm_score" selected={@sort_by == "highest_llm_score"}>Highest LLM Score</option>
-                    <option value="lowest_llm_score" selected={@sort_by == "lowest_llm_score"}>Lowest LLM Score</option>
+                    <option value="highest_llm_score" selected={@sort_by == "highest_llm_score"} disabled={@llm_ranking_in_progress}>Highest LLM Score</option>
+                    <option value="lowest_llm_score" selected={@sort_by == "lowest_llm_score"} disabled={@llm_ranking_in_progress}>Lowest LLM Score</option>
                   </select>
                 </form>
               </span>

@@ -35,6 +35,8 @@ defmodule AskFlowWeb.SearchViewLive do
      |> assign(:answers, [])
      |> assign(:ai_generated_answer, %{})
      |> assign(:error, nil)
+     |> assign(:llm_ranking_in_progress, false)
+     |> assign(:llm_ranking_task, nil)
      |> assign(:recent_questions, recent_questions)
      |> assign(:recent_searches, recent_searches)
      |> assign(:show_sort_dropdown, false)
@@ -77,7 +79,8 @@ defmodule AskFlowWeb.SearchViewLive do
       |> assign(:search_timer, search_timer)
       |> assign(:recent_searches, recent_searches)
       |> assign(:sort_by, sort_by)
-      |> start_search_questions()}
+      |> start_search_questions()
+    }
     end
   end
 
@@ -145,13 +148,25 @@ defmodule AskFlowWeb.SearchViewLive do
           Process.cancel_timer(socket.assigns.search_timer)
         end
 
-        sorted_questions = sort_questions(questions, socket.assigns.sort_by)
+        if socket.assigns.sort_by in ["highest_llm_score", "lowest_llm_score"] do
+          task = Task.async(fn -> rank_by_llm(query, questions) end)
 
-        {:noreply,
-         socket
-         |> assign(:search_timer, nil)
-         |> assign(:loading, false)
-         |> assign(:questions, sorted_questions)}
+          {:noreply,
+           socket
+           |> assign(:search_timer, nil)
+           |> assign(:loading, false)
+           |> assign(:questions, questions)
+           |> assign(:llm_ranking_in_progress, true)
+           |> assign(:llm_ranking_task, task)}
+        else
+          sorted_questions = sort_questions(questions, socket.assigns.sort_by)
+
+          {:noreply,
+           socket
+           |> assign(:search_timer, nil)
+           |> assign(:loading, false)
+           |> assign(:questions, sorted_questions)}
+        end
 
       {:ok, []} ->
         Logger.warning("No results found for '#{query}'")
@@ -183,6 +198,13 @@ defmodule AskFlowWeb.SearchViewLive do
     end
   end
 
+  defp rank_by_llm(search_query, questions) do
+    Enum.map(questions, fn question ->
+      llm_score = LLM.get_llm_relevance_score_for_question(search_query, question)
+      Map.put(question, "llm_score", llm_score)
+    end)
+  end
+
   @impl true
   def handle_info(:search_timeout, socket) do
     Logger.error("Search timeout for query: #{socket.assigns.query}")
@@ -192,6 +214,27 @@ defmodule AskFlowWeb.SearchViewLive do
      |> assign(:loading, false)
      |> assign(:search_timer, nil)
      |> put_flash(:error, "Search timed out. Please try again or try a different query.")}
+  end
+
+  @impl true
+  def handle_info({ref, ranked_questions}, socket) when ref == socket.assigns.llm_ranking_task.ref do
+    Process.demonitor(ref, [:flush])
+
+    sorted_questions = sort_questions(ranked_questions, socket.assigns.sort_by)
+
+    {:noreply,
+     socket
+     |> assign(:questions, sorted_questions)
+     |> assign(:llm_ranking_in_progress, false)
+     |> assign(:llm_ranking_task, nil)}
+  end
+
+  @impl true
+  def handle_info({:DOWN, ref, :process, _pid, _reason}, socket) when ref == socket.assigns.llm_ranking_task.ref do
+    {:noreply,
+     socket
+     |> assign(:llm_ranking_in_progress, false)
+     |> assign(:llm_ranking_task, nil)}
   end
 
   defp start_search_questions(socket) do
