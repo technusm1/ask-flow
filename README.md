@@ -26,7 +26,7 @@ Here's a demo video showing the website in action:
 - OpenAI API key or a local LLM running using an OpenAI compatible API
 
 ## Running the Application
-⚠️ Application packaging isn't complete yet. So these instructions are not correct and subject to change.
+⚠️ Application packaging isn't complete yet. So these instructions are not correct and subject to change. Exercise caution.
 
 ### Using Docker Compose (Recommended)
 
