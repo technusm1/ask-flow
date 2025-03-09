@@ -130,36 +130,71 @@ defmodule AskFlowWeb.CoreComponents do
     """
   end
 
+  attr :score, :integer, required: false, default: nil
+  attr :llm_score, :integer, required: false, default: nil
+  attr :is_accepted, :boolean, required: false, default: false
+  attr :body_markdown, :string, required: true
+  attr :profile_img, :string, required: true
+  attr :profile_link, :string, required: true
+  attr :display_name, :string, required: true
+  attr :creation_date, :integer, required: true
+
   def answer_component(assigns) do
     ~H"""
     <div class="bg-white shadow rounded-lg p-6 mb-4">
       <div class="flex">
+        <!-- Answer voting -->
+        <%= if @score do %>
+          <div class="flex-shrink-0 text-center mr-4">
+            <div class="text-gray-700 font-bold text-xl mb-2">{assigns.score}</div>
+            <div class="text-sm text-gray-500">votes</div>
+            <br />
+            <div class="text-gray-700 font-bold text-xl mb-2">
+            {if @llm_score, do: @llm_score, else: "-"}
+            </div>
+            <div class="text-sm text-gray-500">rating</div>
+            <%= if @is_accepted do %>
+              <svg
+                class="h-8 w-8 text-green-500 mx-auto mt-2"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.814a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+            <% end %>
+          </div>
+        <% end %>
         <!-- Answer content -->
         <div class="flex-grow">
           <div
             class="prose max-w-none mb-6"
             style="word-break: break-word; overflow-wrap: break-word;"
           >
-            <.markdown text={assigns.body_markdown} />
+            <.markdown text={@body_markdown} />
           </div>
 
           <!-- Answer metadata -->
           <div class="flex items-center text-sm text-gray-500 border-t pt-4">
             <div class="flex items-center space-x-2">
               <img
-                src={assigns.profile_img}
+                src={@profile_img}
                 class="h-8 w-8 rounded-full"
               />
               <a
-                href={assigns.profile_link}
+                href={@profile_link}
                 class="text-blue-600 hover:underline"
               >
-                {assigns.display_name}
+                {@display_name}
               </a>
             </div>
             <div class="ml-auto">
               answered {Calendar.strftime(
-                DateTime.from_unix!(assigns.creation_date),
+                DateTime.from_unix!(@creation_date),
                 "%B %-d, %Y at %I:%M %p"
               )}
             </div>

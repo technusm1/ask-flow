@@ -112,7 +112,6 @@ alias AskFlow.API.LLM
 
   @impl true
   def handle_cast(:finish, socket) do
-    IO.inspect(List.first(socket.assigns[:answers]))
     {:noreply, socket
     |> put_flash(:info, "Answer generated successfully")
     |> assign(:answer_loading, false)}

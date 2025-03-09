@@ -6,6 +6,48 @@ defmodule AskFlow.API.LLM do
 
   require Logger
 
+  def get_llm_score(question, answer) do
+    options = [
+      temperature: 1.0,
+      base_url: System.get_env("OPENAI_API_URL", "http://localhost:1234/v1"),
+    ]
+
+    question_title = question["title"]
+    question_body = question["body_markdown"]
+    answer_body = answer["body_markdown"]
+
+    {:ok, completion_response} =
+      ExOpenAI.Chat.create_chat_completion(
+        [
+          %ChatCompletionRequestSystemMessage{
+            content:
+              """
+              You are a highly skilled programmer who can judge the quality of an answer, given a question.
+              You are a top-rated Stack Overflow expert.
+              You are judging the answer for the following question:
+
+              Question Title: #{question_title}
+              Question Body (Markdown):
+              #{question_body}
+
+              Answer Body (Markdown):
+              #{answer_body}
+
+              Your reply should only contain the score of the answer out of 100.
+              """,
+            role: :system
+          }
+        ],
+        "gpt-3.5-turbo",
+        options
+      )
+
+    Enum.at(completion_response.choices, 0, %{})
+    |> Map.get(:message, %{})
+    |> Map.get(:content, "-1")
+    |> String.to_integer()
+  end
+
   def stream_response(pid, question_title, question_body) do
     Logger.info("Generating answer with AI")
 

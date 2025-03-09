@@ -1,6 +1,5 @@
 defmodule AskFlowWeb.QuestionDetailLive do
   alias AskFlow.API.LLM
-  alias ExOpenAI.Components.ChatCompletionRequestSystemMessage
   alias AskFlow.QuestionsCache
   alias AskFlow.Questions
   require Logger
@@ -66,7 +65,6 @@ defmodule AskFlowWeb.QuestionDetailLive do
 
   @impl true
   def handle_cast(:finish, socket) do
-    IO.inspect(List.first(socket.assigns[:answers]))
     {:noreply, socket
     |> put_flash(:info, "Answer generated successfully")
     |> assign(:answer_loading, false)}
@@ -122,80 +120,18 @@ defmodule AskFlowWeb.QuestionDetailLive do
 
     answers_with_llm_scores =
       Enum.map(answers, fn answer ->
-        llm_score = get_llm_score(question, answer)
+        llm_score = LLM.get_llm_score(question, answer)
         Map.put(answer, "llm_score", llm_score)
       end)
 
     {:noreply, assign(socket, answers: answers_with_llm_scores)}
   end
 
-  defp sort_answers(answers, "newest") do
-    Enum.sort_by(answers, & &1["creation_date"], :desc)
-  end
-
-  defp sort_answers(answers, "oldest") do
-    Enum.sort_by(answers, & &1["creation_date"], :asc)
-  end
-
-  defp sort_answers(answers, "highest_score") do
-    Enum.sort_by(answers, & &1["score"], :desc)
-  end
-
-  defp sort_answers(answers, "lowest_score") do
-    Enum.sort_by(answers, & &1["score"], :asc)
-  end
-
-  defp sort_answers(answers, "") do
-    answers
-  end
-
-  defp sort_answers(answers, "highest_llm_score") do
-    Enum.sort_by(answers, & &1["llm_score"], :desc)
-  end
-
-  defp sort_answers(answers, "lowest_llm_score") do
-    Enum.sort_by(answers, & &1["llm_score"], :asc)
-  end
-
-  def get_llm_score(question, answer) do
-    options = [
-      temperature: 1.0,
-      base_url: System.get_env("OPENAI_API_URL", "http://localhost:1234/v1"),
-    ]
-
-    question_title = question["title"]
-    question_body = question["body_markdown"]
-    answer_body = answer["body_markdown"]
-
-    {:ok, completion_response} =
-      ExOpenAI.Chat.create_chat_completion(
-        [
-          %ChatCompletionRequestSystemMessage{
-            content:
-              """
-              You are a highly skilled programmer who can judge the quality of an answer, given a question.
-              You are a top-rated Stack Overflow expert.
-              You are judging the answer for the following question:
-
-              Question Title: #{question_title}
-              Question Body (Markdown):
-              #{question_body}
-
-              Answer Body (Markdown):
-              #{answer_body}
-
-              Your reply should only contain the score of the answer out of 100.
-              """,
-            role: :system
-          }
-        ],
-        "gpt-3.5-turbo",
-        options
-      )
-
-    Enum.at(completion_response.choices, 0, %{})
-    |> Map.get(:message, %{})
-    |> Map.get(:content, "-1")
-    |> String.to_integer()
-  end
+  defp sort_answers(answers, "newest"), do: Enum.sort_by(answers, & &1["creation_date"], :desc)
+  defp sort_answers(answers, "oldest"), do: Enum.sort_by(answers, & &1["creation_date"], :asc)
+  defp sort_answers(answers, "highest_score"), do: Enum.sort_by(answers, & &1["score"], :desc)
+  defp sort_answers(answers, "lowest_score"), do: Enum.sort_by(answers, & &1["score"], :asc)
+  defp sort_answers(answers, ""), do: answers
+  defp sort_answers(answers, "highest_llm_score"), do: Enum.sort_by(answers, & &1["llm_score"], :desc)
+  defp sort_answers(answers, "lowest_llm_score"), do: Enum.sort_by(answers, & &1["llm_score"], :asc)
 end
