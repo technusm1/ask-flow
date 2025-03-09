@@ -1,0 +1,149 @@
+<div class="min-h-screen bg-gray-100">
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <%= if @loading do %>
+      <div class="flex justify-center py-12">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
+      </div>
+    <% else %>
+      <div class="bg-white shadow rounded-lg p-6">
+        <div class="flex">
+          <!-- Voting section -->
+          <div class="flex-shrink-0 text-center mr-4">
+            <div class="text-gray-700 font-bold text-2xl mb-2">{@question["score"]}</div>
+            <div class="text-sm text-gray-500">votes</div>
+          </div>
+          
+<!-- Question content -->
+          <div class="flex-grow">
+            <h1 class="text-2xl font-bold text-gray-900 mb-4">{@question["title"]}</h1>
+            
+<!-- Question body -->
+            <div class="prose max-w-none mb-6 break-words">
+              <.markdown text={@question["body_markdown"]} />
+            </div>
+            
+<!-- Question metadata -->
+            <div class="flex items-center text-sm text-gray-500 border-t pt-4">
+              <div class="flex items-center space-x-2">
+                <img src={@question["owner"]["profile_image"]} class="h-8 w-8 rounded-full" />
+                <a href={@question["owner"]["link"]} class="text-blue-600 hover:underline">
+                  {@question["owner"]["display_name"]}
+                </a>
+                <span class="font-bold">{@question["owner"]["reputation"]}</span>
+              </div>
+              <div class="ml-auto">
+                asked {Calendar.strftime(
+                  DateTime.from_unix!(@question["creation_date"]),
+                  "%B %-d, %Y at %I:%M %p"
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+<!-- Answers section -->
+      <div class="mt-6">
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-xl font-bold text-gray-900">
+            {@question["answer_count"]} {if @question["answer_count"] == 1,
+              do: "Answer",
+              else: "Answers"}
+          </h2>
+          <span class="flex flex-row space-x-4">
+            <button
+              phx-click="generate_answer_with_ai"
+              class={"px-4 py-2 rounded-md text-white " <> if Map.keys(@ai_generated_answer) != [], do: "bg-blue-100", else: "bg-blue-500"}
+              }
+              disabled={Map.keys(@ai_generated_answer) != []}
+            >
+              <.icon name="hero-academic-cap" class="w-6 h-6" />
+              <b>Ask AI</b>
+            </button>
+            <form phx-change="sort_answers">
+              <select name="sort_option" class="px-4 py-2 bg-white border rounded min-w-[200px]">
+                <option value="" disabled selected={@sort_by == ""}>Sort by</option>
+                <option value="newest" selected={@sort_by == "newest"}>Newest</option>
+                <option value="oldest" selected={@sort_by == "oldest"}>Oldest</option>
+                <option value="highest_score" selected={@sort_by == "highest_score"}>Highest Score</option>
+                <option value="lowest_score" selected={@sort_by == "lowest_score"}>Lowest Score</option>
+                <option value="highest_llm_score" selected={@sort_by == "highest_llm_score"}>Highest LLM Score</option>
+                <option value="lowest_llm_score" selected={@sort_by == "lowest_llm_score"}>Lowest LLM Score</option>
+              </select>
+            </form>
+          </span>
+        </div>
+
+        <%= if @answer_loading do %>
+          <div class="flex justify-center py-12">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
+          </div>
+        <% else %>
+          <%= if Map.keys(@ai_generated_answer) != [] do %>
+            <.answer_component
+              body_markdown={@ai_generated_answer["body_markdown"]}
+              profile_img={@ai_generated_answer["owner"]["profile_image"]}
+              profile_link={@ai_generated_answer["owner"]["link"]}
+              display_name={@ai_generated_answer["owner"]["display_name"]}
+              creation_date={@ai_generated_answer["creation_date"]}
+            />
+          <% end %>
+          <%= for answer <- @answers do %>
+            <div class="bg-white shadow rounded-lg p-6 mb-4">
+              <div class="flex">
+                <!-- Answer voting -->
+                <div class="flex-shrink-0 text-center mr-4">
+                  <div class="text-gray-700 font-bold text-xl mb-2">{answer["score"]}</div>
+                  <div class="text-sm text-gray-500">votes</div>
+                  <br />
+                  <div class="text-gray-700 font-bold text-xl mb-2">
+                  {if answer["llm_score"], do: answer["llm_score"], else: "-"}
+                  </div>
+                  <div class="text-sm text-gray-500">rating</div>
+                  <%= if answer["is_accepted"] do %>
+                    <svg
+                      class="h-8 w-8 text-green-500 mx-auto mt-2"
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="currentColor"
+                    >
+                      <path
+                        fill-rule="evenodd"
+                        d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm13.36-1.814a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z"
+                        clip-rule="evenodd"
+                      />
+                    </svg>
+                  <% end %>
+                </div>
+                
+<!-- Answer content -->
+                <div class="flex-grow">
+                  <div class="prose max-w-none mb-6" style="word-break: break-word; overflow-wrap: break-word;">
+                    <.markdown text={answer["body_markdown"]} />
+                  </div>
+                  
+<!-- Answer metadata -->
+                  <div class="flex items-center text-sm text-gray-500 border-t pt-4">
+                    <div class="flex items-center space-x-2">
+                      <img src={answer["owner"]["profile_image"]} class="h-8 w-8 rounded-full" />
+                      <a href={answer["owner"]["link"]} class="text-blue-600 hover:underline">
+                        {answer["owner"]["display_name"]}
+                      </a>
+                      <span class="font-bold">{answer["owner"]["reputation"]}</span>
+                    </div>
+                    <div class="ml-auto">
+                      answered {Calendar.strftime(
+                        DateTime.from_unix!(answer["creation_date"]),
+                        "%B %-d, %Y at %I:%M %p"
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          <% end %>
+        <% end %>
+      </div>
+    <% end %>
+  </main>
+</div>

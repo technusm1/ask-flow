@@ -1,0 +1,79 @@
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+
+/* This file is for your main application CSS */
+
+/* Add custom styles below */
+
+.code-block {
+  @apply my-4 rounded-lg overflow-hidden bg-gray-50;
+}
+
+.code-block .code-header {
+  @apply px-4 py-2 bg-gray-200 text-sm text-gray-600 font-mono;
+}
+
+.code-block pre {
+  @apply p-4 overflow-x-auto;
+}
+
+.code-block code {
+  @apply font-mono text-sm;
+}
+
+/* Inline code */
+code:not(.code-block code) {
+  @apply px-1.5 py-0.5 rounded bg-gray-100 font-mono text-sm text-gray-800;
+}
+
+/* Links in content */
+.prose a {
+  @apply text-blue-600 hover:text-blue-800 hover:underline;
+}
+
+/* Lists in content */
+.prose ul {
+  @apply list-disc pl-5 my-4;
+}
+
+.prose ol {
+  @apply list-decimal pl-5 my-4;
+}
+
+/* Paragraphs in content */
+.prose p {
+  @apply my-4;
+}
+
+/* Blockquotes */
+.prose blockquote {
+  @apply pl-4 border-l-4 border-gray-300 text-gray-600 italic my-4;
+}
+
+/* Headers */
+.prose h1 {
+  @apply text-2xl font-bold my-6;
+}
+
+.prose h2 {
+  @apply text-xl font-bold my-5;
+}
+
+.prose h3 {
+  @apply text-lg font-bold my-4;
+}
+
+/* Tables */
+.prose table {
+  @apply w-full my-4 border-collapse;
+}
+
+.prose th,
+.prose td {
+  @apply border p-2 text-left;
+}
+
+.prose th {
+  @apply bg-gray-50;
+}

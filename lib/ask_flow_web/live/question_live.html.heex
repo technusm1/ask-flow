@@ -1,0 +1,175 @@
+<div class="min-h-screen bg-gray-100">
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <!-- Main content -->
+      <div class="md:col-span-3">
+        <%= if @loading do %>
+          <div class="flex justify-center py-12">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
+          </div>
+        <% else %>
+          <%= if @questions && @query != "" do %>
+            <!-- Search Results Header -->
+            <div class="flex justify-between items-center mb-4">
+              <div>
+                <p class="text-sm text-gray-500">Showing search results for:</p>
+                <h2 class="text-lg font-medium text-gray-900">{@query}</h2>
+              </div>
+              <span class="flex flex-row space-x-4">
+                <button
+                  phx-click="generate_answer_with_ai"
+                  class={"px-4 py-2 rounded-md text-white " <> if Map.keys(@ai_generated_answer) != [], do: "bg-blue-100", else: "bg-blue-500"}
+                  }
+                  disabled={Map.keys(@ai_generated_answer) != []}
+                >
+                  <.icon name="hero-academic-cap" class="w-6 h-6" />
+                  <b>Ask AI</b>
+                </button>
+                <form phx-change="sort_questions">
+                  <select
+                    name="sort_option"
+                    class="px-4 py-2 bg-white border rounded min-w-[200px]"
+                  >
+                    <option value="" disabled selected={@sort_by == ""}>Sort by</option>
+                    <option value="newest" selected={@sort_by == "newest"}>Newest</option>
+                    <option value="oldest" selected={@sort_by == "oldest"}>Oldest</option>
+                    <option value="highest_score" selected={@sort_by == "highest_score"}>Highest Score</option>
+                    <option value="lowest_score" selected={@sort_by == "lowest_score"}>Lowest Score</option>
+                    <option value="popularity" selected={@sort_by == "popularity"}>Popularity</option>
+                    <option value="highest_llm_score" selected={@sort_by == "highest_llm_score"}>Highest LLM Score</option>
+                    <option value="lowest_llm_score" selected={@sort_by == "lowest_llm_score"}>Lowest LLM Score</option>
+                  </select>
+                </form>
+              </span>
+            </div>
+            <!-- Questions List -->
+            <div class="space-y-6">
+              <%= if Map.keys(@ai_generated_answer) != [] do %>
+                <.answer_component
+                  body_markdown={@ai_generated_answer["body_markdown"]}
+                  profile_img={@ai_generated_answer["owner"]["profile_image"]}
+                  profile_link={@ai_generated_answer["owner"]["link"]}
+                  display_name={@ai_generated_answer["owner"]["display_name"]}
+                  creation_date={@ai_generated_answer["creation_date"]}
+                />
+              <% end %>
+              <%= for question <- @questions do %>
+                <div class="bg-white shadow rounded-lg p-6 flex">
+                  <div class="flex-shrink-0 text-right mr-4">
+                    <div class="text-gray-700 font-bold">{question["score"]} votes</div>
+                    <div class={
+                      if question["is_answered"],
+                        do: "bg-green-500 text-white font-bold px-2 py-1 rounded",
+                        else: "border border-green-500 text-green-500 font-bold px-2 py-1 rounded"
+                    }>
+                      {if question["is_answered"], do: "✅"} {question["answer_count"]} {if question[
+                                                                                             "answer_count"
+                                                                                           ] == 1,
+                                                                                           do:
+                                                                                             "answer",
+                                                                                           else:
+                                                                                             "answers"}
+                    </div>
+                    <div class="text-orange-600">{question["view_count"]} views</div>
+                  </div>
+                  <div class="flex-grow">
+                    <h2 class="text-xl font-bold text-blue-600 mb-2">
+                      <.link
+                        navigate={~p"/stackoverflow/questions/#{question["question_id"]}"}
+                        class="hover:underline"
+                      >
+                        {question["title"]}
+                      </.link>
+                    </h2>
+                    <div class="flex flex-wrap items-center text-sm text-gray-500 mb-2">
+                      <div class="flex flex-wrap items-center space-x-2">
+                        <%= for tag <- question["tags"] do %>
+                          <span
+                            phx-click="add_tag_to_search"
+                            phx-value-tag={tag}
+                            class="inline-block bg-gray-200 text-gray-800 text-xs font-medium px-2 py-1 rounded cursor-pointer hover:bg-gray-300"
+                          >
+                            {tag}
+                          </span>
+                        <% end %>
+                      </div>
+                      <div class="flex items-center space-x-2 mt-2 md:mt-0 md:ml-auto">
+                        <object
+                          data={question["owner"]["profile_image"]}
+                          type="image/png"
+                          class="h-4 w-4 rounded-full"
+                        >
+                          <img
+                            src="/images/default_profile.png"
+                            alt={question["owner"]["display_name"]}
+                          />
+                        </object>
+                        <a href={question["owner"]["link"]} class="text-blue-600 hover:underline">
+                          {question["owner"]["display_name"]}
+                        </a>
+                        <span class="font-bold">{question["owner"]["reputation"]}</span>
+                        <span>
+                          asked {Calendar.strftime(
+                            DateTime.from_unix!(question["creation_date"]),
+                            "%B %-d, %Y at %I:%M %p"
+                          )}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          <% else %>
+            <div class="bg-white shadow rounded-lg p-12 text-center">
+              <svg
+                class="mx-auto h-12 w-12 text-gray-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                >
+                </path>
+              </svg>
+              <h3 class="mt-2 text-lg font-medium text-gray-900">Start your search</h3>
+              <p class="mt-1 text-sm text-gray-500">
+                Press <kbd class="px-1.5 py-0.5 text-xs border rounded-md bg-gray-100">⌘</kbd>
+                + <kbd class="px-1.5 py-0.5 text-xs border rounded-md bg-gray-100">⇧</kbd>
+                + <kbd class="px-1.5 py-0.5 text-xs border rounded-md bg-gray-100">F</kbd>
+                to search for programming questions.
+              </p>
+            </div>
+          <% end %>
+        <% end %>
+      </div>
+      
+<!-- Right sidebar - Recent questions and searches -->
+      <div class="md:col-span-1 space-y-6">
+        <.sidebar_cards title="Recently Viewed Questions" placeholder="No recent questions"
+          :let={question} entries={@recent_questions}>
+          <.link
+            navigate={~p"/stackoverflow/questions/#{question.question_id}"}
+            class="text-left text-blue-600 hover:text-blue-800 text-sm hover:underline w-full break-words"
+          >
+            {question.question_title}
+          </.link>
+        </.sidebar_cards>
+
+        <.sidebar_cards title="Recent Searches" placeholder="No recent searches"
+          :let={search} entries={@recent_searches}>
+          <.link
+            navigate={~p"/search?q=#{search.search_text}"}
+            class="text-left text-blue-600 hover:text-blue-800 text-sm hover:underline w-full break-words"
+          >
+            {search.search_text}
+          </.link>
+        </.sidebar_cards>
+      </div>
+    </div>
+  </main>
+</div>
