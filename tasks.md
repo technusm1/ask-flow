@@ -10,10 +10,10 @@
 - ✅ Update GitHub repo readme.
 - ✅ Code cleanup
 - ✅ Dockerized deployment
+- ✅ Draw a nice architecture diagram (convert handwritten notes into a properly structured diagram)
 
 # Future tasks
 - [ ] Respect user's local timezone
-- [ ] Draw a nice architecture diagram (convert handwritten notes into a properly structured diagram)
 - [ ] Rate limiter for calling stackoverflow API + LLM API, have configurable rate limits. Use hammer (https://github.com/ExHammer/hammer) as a rate limiter rather than re-inventing the wheel
 - [ ] Add documentation (using ExDoc)
 - [ ] Structured JSON logging

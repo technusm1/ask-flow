@@ -14,7 +14,7 @@ alias AskFlow.QuestionsCache
       AskFlow.Repo,
       {DNSCluster, query: Application.get_env(:ask_flow, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: AskFlow.PubSub},
-      # Start the Finch HTTP client for sending emails
+      # Start the Finch HTTP client for sending requests to the APIs
       {Finch, name: AskFlow.Finch},
       # Start Cache for caching recent questions and searches
       QuestionsCache,

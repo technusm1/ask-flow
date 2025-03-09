@@ -23,6 +23,7 @@ Here's a demo video showing the website in action:
 
 ## Documents of Interest
 - [List of tasks](/tasks.md): Tracks the tasks completed and yet to be completed. A checklist for keeping track of things and the overall development of the project.
+- [Architecture Diagram](/docs/Project%20Architecture.svg): A high-level overview of the architecture of the application.
 
 ## Project Assumptions
 This project is created with the following assumptions:
