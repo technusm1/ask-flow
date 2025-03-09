@@ -100,3 +100,6 @@ This project is created with the following assumptions:
 
 ## License
 MIT
+
+## Credits
+- [Robot icons created by Hilmy Abiyyu A. - Flaticon](https://www.flaticon.com/free-icons/robot)

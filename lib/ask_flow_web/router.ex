@@ -22,9 +22,9 @@ defmodule AskFlowWeb.Router do
 
     live_session :default,
       on_mount: [{AskFlowWeb.UserAuth, :mount_current_user}] do
-      live "/", QuestionLive
-      live "/search", QuestionLive
-      live "/stackoverflow/questions/:question_id", QuestionDetailLive, :show
+      live "/", SearchViewLive
+      live "/search", SearchViewLive
+      live "/stackoverflow/questions/:question_id", StackOverflowQuestionAnswerDetailLive, :show
     end
   end
 

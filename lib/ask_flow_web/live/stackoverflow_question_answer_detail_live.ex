@@ -1,4 +1,4 @@
-defmodule AskFlowWeb.QuestionDetailLive do
+defmodule AskFlowWeb.StackOverflowQuestionAnswerDetailLive do
   alias AskFlow.API.LLM
   alias AskFlow.QuestionsCache
   alias AskFlow.Questions
@@ -55,8 +55,8 @@ defmodule AskFlowWeb.QuestionDetailLive do
     socket
     |> assign(:ai_generated_answer, %{
       "owner" => %{
-        "display_name" => "AI",
-        "profile_image" => "https://cdn.sstatic.net/Sites/stackoverflow/img/apple-touch-icon.png"
+        "display_name" => "Your friendly AI",
+        "profile_image" => "/images/robot.png"
       },
       "body_markdown" => ai_answer_markdown <> content_str,
       "creation_date" => DateTime.utc_now() |> DateTime.to_unix()

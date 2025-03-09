@@ -1,6 +1,6 @@
-defmodule AskFlowWeb.QuestionLive do
-alias AskFlow.QuestionsCache
-alias AskFlow.API.LLM
+defmodule AskFlowWeb.SearchViewLive do
+  alias AskFlow.QuestionsCache
+  alias AskFlow.API.LLM
   use AskFlowWeb, :live_view
 
   alias AskFlow.Questions

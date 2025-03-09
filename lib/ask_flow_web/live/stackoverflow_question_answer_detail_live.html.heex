@@ -13,16 +13,16 @@
             <div class="text-sm text-gray-500">votes</div>
           </div>
           
-<!-- Question content -->
+          <!-- Question content -->
           <div class="flex-grow">
             <h1 class="text-2xl font-bold text-gray-900 mb-4">{@question["title"]}</h1>
             
-<!-- Question body -->
+            <!-- Question body -->
             <div class="prose max-w-none mb-6 break-words">
               <.markdown text={@question["body_markdown"]} />
             </div>
             
-<!-- Question metadata -->
+            <!-- Question metadata -->
             <div class="flex items-center text-sm text-gray-500 border-t pt-4">
               <div class="flex items-center space-x-2">
                 <img src={@question["owner"]["profile_image"]} class="h-8 w-8 rounded-full" />

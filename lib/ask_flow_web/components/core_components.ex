@@ -134,7 +134,7 @@ defmodule AskFlowWeb.CoreComponents do
   attr :llm_score, :integer, required: false, default: nil
   attr :is_accepted, :boolean, required: false, default: false
   attr :body_markdown, :string, required: true
-  attr :profile_img, :string, required: true
+  attr :profile_img, :string, required: false, default: "/images/default_profile.png"
   attr :profile_link, :string, required: true
   attr :display_name, :string, required: true
   attr :creation_date, :integer, required: true
