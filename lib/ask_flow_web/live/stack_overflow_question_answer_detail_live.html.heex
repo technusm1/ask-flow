@@ -13,16 +13,16 @@
             <div class="text-sm text-gray-500">votes</div>
           </div>
           
-          <!-- Question content -->
+<!-- Question content -->
           <div class="flex-grow">
             <h1 class="text-2xl font-bold text-gray-900 mb-4">{@question["title"]}</h1>
             
-            <!-- Question body -->
+<!-- Question body -->
             <div class="prose max-w-none mb-6 break-words">
               <.markdown text={@question["body_markdown"]} />
             </div>
             
-            <!-- Question metadata -->
+<!-- Question metadata -->
             <div class="flex items-center text-sm text-gray-500 border-t pt-4">
               <div class="flex items-center space-x-2">
                 <img src={@question["owner"]["profile_image"]} class="h-8 w-8 rounded-full" />
@@ -65,10 +65,26 @@
                 <option value="" disabled selected={@sort_by == ""}>Sort by</option>
                 <option value="newest" selected={@sort_by == "newest"}>Newest</option>
                 <option value="oldest" selected={@sort_by == "oldest"}>Oldest</option>
-                <option value="highest_score" selected={@sort_by == "highest_score"}>Highest Score</option>
-                <option value="lowest_score" selected={@sort_by == "lowest_score"}>Lowest Score</option>
-                <option value="highest_llm_score" selected={@sort_by == "highest_llm_score"}>Highest LLM Score</option>
-                <option value="lowest_llm_score" selected={@sort_by == "lowest_llm_score"}>Lowest LLM Score</option>
+                <option value="highest_score" selected={@sort_by == "highest_score"}>
+                  Highest Score
+                </option>
+                <option value="lowest_score" selected={@sort_by == "lowest_score"}>
+                  Lowest Score
+                </option>
+                <option
+                  value="highest_llm_score"
+                  selected={@sort_by == "highest_llm_score"}
+                  disabled={@llm_ranking_in_progress}
+                >
+                  Highest LLM Score
+                </option>
+                <option
+                  value="lowest_llm_score"
+                  selected={@sort_by == "lowest_llm_score"}
+                  disabled={@llm_ranking_in_progress}
+                >
+                  Lowest LLM Score
+                </option>
               </select>
             </form>
           </span>

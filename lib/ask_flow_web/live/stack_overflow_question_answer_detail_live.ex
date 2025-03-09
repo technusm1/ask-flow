@@ -31,6 +31,7 @@ defmodule AskFlowWeb.StackOverflowQuestionAnswerDetailLive do
            |> assign(:loading, false)
            |> assign(:answer_loading, true)
            |> assign(:ai_generated_answer, %{})
+           |> assign(:llm_ranking_in_progress, false)
            |> assign(:answers, [])}
 
         {:error, reason} ->
@@ -46,52 +47,86 @@ defmodule AskFlowWeb.StackOverflowQuestionAnswerDetailLive do
 
   @impl true
   def handle_cast({:data, %ExOpenAI.Components.CreateChatCompletionResponse{} = response}, socket) do
-    content_str = Enum.reduce(response.choices, "", fn choice, acc ->
-      choice_content = choice |> Map.get(:delta, %{}) |> Map.get(:content, "")
-      acc <> choice_content
-    end)
+    content_str =
+      Enum.reduce(response.choices, "", fn choice, acc ->
+        choice_content = choice |> Map.get(:delta, %{}) |> Map.get(:content, "")
+        acc <> choice_content
+      end)
+
     ai_answer_markdown = socket.assigns[:ai_generated_answer] |> Map.get("body_markdown", "")
+
     {:noreply,
-    socket
-    |> assign(:ai_generated_answer, %{
-      "owner" => %{
-        "display_name" => "Your friendly AI",
-        "profile_image" => "/images/robot.png"
-      },
-      "body_markdown" => ai_answer_markdown <> content_str,
-      "creation_date" => DateTime.utc_now() |> DateTime.to_unix()
-    })}
+     socket
+     |> assign(:ai_generated_answer, %{
+       "owner" => %{
+         "display_name" => "Your friendly AI",
+         "profile_image" => "/images/robot.png"
+       },
+       "body_markdown" => ai_answer_markdown <> content_str,
+       "creation_date" => DateTime.utc_now() |> DateTime.to_unix()
+     })}
   end
 
   @impl true
   def handle_cast(:finish, socket) do
-    {:noreply, socket
-    |> put_flash(:info, "Answer generated successfully")
-    |> assign(:answer_loading, false)}
+    {:noreply,
+     socket
+     |> put_flash(:info, "Answer generated successfully")
+     |> assign(:answer_loading, false)}
   end
 
   @impl true
   def handle_event("sort_answers", %{"sort_option" => sort_option}, socket) do
     Logger.info("Sorting answers by: #{sort_option}")
     sorted_answers = sort_answers(socket.assigns.answers, sort_option)
+
     {:noreply,
-      socket
-      |> assign(:answers, sorted_answers)
-      |> assign(:sort_by, sort_option)
-      |> push_patch(to: ~p"/stackoverflow/questions/#{socket.assigns.question["question_id"]}?sort_by=#{sort_option}")
-    }
+     socket
+     |> assign(:answers, sorted_answers)
+     |> assign(:sort_by, sort_option)
+     |> push_patch(
+       to:
+         ~p"/stackoverflow/questions/#{socket.assigns.question["question_id"]}?sort_by=#{sort_option}"
+     )}
   end
 
   # Start streaming from OpenAI
   @impl true
   def handle_event("generate_answer_with_ai", _params, socket) do
-    {:ok, _completion_response} = LLM.stream_response(self(), socket.assigns[:question]["title"], socket.assigns[:question]["body_markdown"])
+    {:ok, _completion_response} =
+      LLM.stream_response(
+        self(),
+        socket.assigns[:question]["title"],
+        socket.assigns[:question]["body_markdown"]
+      )
+
     {:noreply, socket}
   end
 
   @impl true
   def handle_params(_params, _uri, socket) do
     {:noreply, socket}
+  end
+
+  @impl true
+  def handle_info({ref, ranked_answers}, socket)
+      when ref == socket.assigns.llm_ranking_task.ref do
+    Process.demonitor(ref, [:flush])
+
+    {:noreply,
+     socket
+     |> assign(:answers, ranked_answers)
+     |> assign(:llm_ranking_in_progress, false)
+     |> assign(:llm_ranking_task, nil)}
+  end
+
+  @impl true
+  def handle_info({:DOWN, ref, :process, _pid, _reason}, socket)
+      when ref == socket.assigns.llm_ranking_task.ref do
+    {:noreply,
+     socket
+     |> assign(:llm_ranking_in_progress, false)
+     |> assign(:llm_ranking_task, nil)}
   end
 
   @impl true
@@ -102,7 +137,7 @@ defmodule AskFlowWeb.StackOverflowQuestionAnswerDetailLive do
       {:ok, answers} ->
         Logger.info("Got #{length(answers)} answers for question #{question_id}")
 
-        send(self(), {:rank_by_llm, question, answers})
+        task = Task.async(fn -> rank_by_llm(question, answers) end)
 
         {:noreply,
          socket
@@ -110,21 +145,17 @@ defmodule AskFlowWeb.StackOverflowQuestionAnswerDetailLive do
          |> assign(:question, question)
          |> assign(:answers, answers)
          |> assign(:recent_questions, [])
-         |> push_event("sort_answers", %{"sort_option" => socket.assigns.sort_by})
-        }
+         |> assign(:llm_ranking_in_progress, true)
+         |> assign(:llm_ranking_task, task)
+         |> push_event("sort_answers", %{"sort_option" => socket.assigns.sort_by})}
     end
   end
 
-  def handle_info({:rank_by_llm, question, answers}, socket) do
-    Logger.info("Ranking answers by LLM score")
-
-    answers_with_llm_scores =
-      Enum.map(answers, fn answer ->
-        llm_score = LLM.get_llm_score(question, answer)
-        Map.put(answer, "llm_score", llm_score)
-      end)
-
-    {:noreply, assign(socket, answers: answers_with_llm_scores)}
+  defp rank_by_llm(question, answers) do
+    Enum.map(answers, fn answer ->
+      llm_score = LLM.get_llm_score(question, answer)
+      Map.put(answer, "llm_score", llm_score)
+    end)
   end
 
   defp sort_answers(answers, "newest"), do: Enum.sort_by(answers, & &1["creation_date"], :desc)
@@ -132,6 +163,10 @@ defmodule AskFlowWeb.StackOverflowQuestionAnswerDetailLive do
   defp sort_answers(answers, "highest_score"), do: Enum.sort_by(answers, & &1["score"], :desc)
   defp sort_answers(answers, "lowest_score"), do: Enum.sort_by(answers, & &1["score"], :asc)
   defp sort_answers(answers, ""), do: answers
-  defp sort_answers(answers, "highest_llm_score"), do: Enum.sort_by(answers, & &1["llm_score"], :desc)
-  defp sort_answers(answers, "lowest_llm_score"), do: Enum.sort_by(answers, & &1["llm_score"], :asc)
+
+  defp sort_answers(answers, "highest_llm_score"),
+    do: Enum.sort_by(answers, & &1["llm_score"], :desc)
+
+  defp sort_answers(answers, "lowest_llm_score"),
+    do: Enum.sort_by(answers, & &1["llm_score"], :asc)
 end

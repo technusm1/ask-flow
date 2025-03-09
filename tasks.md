@@ -14,7 +14,7 @@
 - [ ] Code cleanup
 - [ ] Create a good architecture diagram (in Lucid maybe)
 - [ ] Add documentation (using ExDoc)
-- Structured JSON logging
+- [ ] Structured JSON logging
 - [ ] Code linter and security checker: credo + sobelow
 - [ ] Dockerized ollama deployment for LLM
 - [ ] Setup CI
