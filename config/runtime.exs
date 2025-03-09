@@ -20,6 +20,12 @@ if System.get_env("PHX_SERVER") do
   config :ask_flow, AskFlowWeb.Endpoint, server: true
 end
 
+
+# Configure stack overflow API
+config :ask_flow,
+  stack_overflow_base_url: System.get_env("STACK_OVERFLOW_BASE_URL") || "https://api.stackexchange.com/2.3",
+  stack_overflow_user_agent: System.get_env("STACK_OVERFLOW_USER_AGENT") || "Askflow/1.0"
+
 if config_env() == :prod do
   database_url =
     System.get_env("DATABASE_URL") ||

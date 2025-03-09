@@ -5,9 +5,6 @@ defmodule AskFlow.API.StackOverflow do
 
   require Logger
 
-  @base_url "https://api.stackexchange.com/2.3"
-  # @base_url "http://localhost:8000"
-  @user_agent "Askflow/1.0"
   @receive_timeout 10_000
   @default_params %{
     "site" => "stackoverflow"
@@ -17,6 +14,7 @@ defmodule AskFlow.API.StackOverflow do
   Search for questions on Stack Overflow.
   """
   def search_questions(query) do
+    base_url = Application.get_env(:ask_flow, :stack_overflow_base_url, "https://api.stackexchange.com/2.3")
     Logger.info("Searching Stack Overflow for: #{query}")
 
     # Decode HTML entities in the query
@@ -38,7 +36,7 @@ defmodule AskFlow.API.StackOverflow do
       })
 
     # Use simple search endpoint
-    url = "#{@base_url}/search"
+    url = "#{base_url}/search"
     Logger.debug("Search params: #{inspect(params)}")
     Logger.debug("Search URL: #{url}")
 
@@ -60,6 +58,7 @@ defmodule AskFlow.API.StackOverflow do
   Get answers for a specific question by its ID.
   """
   def get_answers(question_id) do
+    base_url = Application.get_env(:ask_flow, :stack_overflow_base_url, "https://api.stackexchange.com/2.3")
     Logger.info("Getting answers for question: #{question_id}")
 
     params =
@@ -72,7 +71,7 @@ defmodule AskFlow.API.StackOverflow do
         "filter" => "!6WPIomnJRWnar"
       })
 
-    url = "#{@base_url}/questions/#{question_id}/answers"
+    url = "#{base_url}/questions/#{question_id}/answers"
 
     result =
       case make_request(url, params) do
@@ -97,13 +96,14 @@ defmodule AskFlow.API.StackOverflow do
   Get a specific question by its ID.
   """
   def get_question(question_id) do
+    base_url = Application.get_env(:ask_flow, :stack_overflow_base_url, "https://api.stackexchange.com/2.3")
     Logger.info("Getting question: #{question_id}")
 
     params = Map.merge(@default_params, %{
       "filter" => "!6WPIomnJRWnar"
     })
 
-    url = "#{@base_url}/questions/#{question_id}"
+    url = "#{base_url}/questions/#{question_id}"
 
     result =
       case make_request(url, params) do
@@ -153,13 +153,14 @@ defmodule AskFlow.API.StackOverflow do
   # Make a request to the Stack Overflow API using Finch
   defp make_request(url, params) do
     # Convert params to query string
+    user_agent = Application.get_env(:ask_flow, :stack_overflow_user_agent, "AskFlow/1.0")
     query_string = URI.encode_query(params)
     full_url = "#{url}?#{query_string}"
     Logger.debug("Making request to: #{full_url}")
 
     headers = [
       {"accept", "application/json"},
-      {"user-agent", @user_agent}
+      {"user-agent", user_agent}
     ]
 
     # Use Finch to make the request

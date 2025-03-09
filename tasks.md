@@ -7,12 +7,12 @@
 - ✅ Ask AI functionality to generate AI answers for a stackoverflow question.
 - ✅ Display a ranking option for ranking search results by newest, oldest, stackoverflow scores, or LLM ranking (ask LLM for confidence scores out of 100).
 - ✅ Update GitHub repo readme.
+- ✅ Code cleanup
 
 - [ ] Respect user's local timezone
 - [ ] Draw a nice architecture diagram (convert handwritten notes into a properly structured diagram)
 - [ ] Rate limiter for calling stackoverflow API + LLM API, have configurable rate limits. Use hammer (https://github.com/ExHammer/hammer) as a rate limiter rather than re-inventing the wheel
-- [ ] Code cleanup
-- [ ] Create a good architecture diagram (in Lucid maybe)
+
 - [ ] Add documentation (using ExDoc)
 - [ ] Structured JSON logging
 - [ ] Code linter and security checker: credo + sobelow

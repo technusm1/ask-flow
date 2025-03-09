@@ -198,13 +198,6 @@ defmodule AskFlowWeb.SearchViewLive do
     end
   end
 
-  defp rank_by_llm(search_query, questions) do
-    Enum.map(questions, fn question ->
-      llm_score = LLM.get_llm_relevance_score_for_question(search_query, question)
-      Map.put(question, "llm_score", llm_score)
-    end)
-  end
-
   @impl true
   def handle_info(:search_timeout, socket) do
     Logger.error("Search timeout for query: #{socket.assigns.query}")
@@ -235,6 +228,13 @@ defmodule AskFlowWeb.SearchViewLive do
      socket
      |> assign(:llm_ranking_in_progress, false)
      |> assign(:llm_ranking_task, nil)}
+  end
+
+  defp rank_by_llm(search_query, questions) do
+    Enum.map(questions, fn question ->
+      llm_score = LLM.get_llm_relevance_score_for_question(search_query, question)
+      Map.put(question, "llm_score", llm_score)
+    end)
   end
 
   defp start_search_questions(socket) do
