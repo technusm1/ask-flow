@@ -9,6 +9,10 @@ Powered by StackExchange API and OpenAI API compatible LLMs.
 - Recent questions history
 - Responsive UI that resembles Stack Overflow
 
+## Demo
+Here's a demo video showing the website in action:  
+[![AskFlow demo video](https://img.youtube.com/vi/j1AR5ikUJRA/0.jpg)](https://www.youtube.com/watch?v=j1AR5ikUJRA)
+
 ## Tech Stack
 - **Backend**: Elixir + Phoenix Framework
 - **Frontend**: Phoenix LiveView + TailwindCSS
@@ -86,9 +90,3 @@ Powered by StackExchange API and OpenAI API compatible LLMs.
 
 ## License
 MIT
-
-
-
-## Demo
-Here's a demo video showing the website in action:  
-[![AskFlow demo video](https://img.youtube.com/vi/j1AR5ikUJRA/0.jpg)](https://www.youtube.com/watch?v=j1AR5ikUJRA)
