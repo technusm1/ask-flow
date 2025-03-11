@@ -19,5 +19,6 @@
 - [ ] Structured JSON logging
 - [ ] Code linter and security checker: credo + sobelow
 - [ ] Setup CI
-- [ ] Use LLM to generate good search questions + tags for search term
+- [ ] Use LLM to generate good search questions + tags for search term. Show it as "Did you mean?" on the search results page.
 - [ ] Best answer is a continuous effort, keep improving it by asking user feedback and adding that to LLM.
+- [ ] UX improvement: Focus on a webpage element on page load. Based on German Velasco's suggestion, focus on the search bar on page load. Link: https://www.youtube.com/shorts/LUY9RE9HLQM
