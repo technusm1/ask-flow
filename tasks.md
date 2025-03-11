@@ -20,3 +20,4 @@
 - [ ] Code linter and security checker: credo + sobelow
 - [ ] Setup CI
 - [ ] Use LLM to generate good search questions + tags for search term
+- [ ] Best answer is a continuous effort, keep improving it by asking user feedback and adding that to LLM.
