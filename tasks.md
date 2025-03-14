@@ -1,16 +1,16 @@
-# Tasks list (Completed tasks are marked with ✅)
+# Tasks list
 
-- ✅ Change placeholder searchbar text to "Ask me a question"
-- ✅ Fix search results coming from stackoverflow API
-- ✅ Render search results properly on website. Should be accessible globally from anywhere
-- ✅ Each search result should be clickable - render it in our custom page
-- ✅ Recent 5 questions searched by a user should be cached in a database of your choice.
-- ✅ Ask AI functionality to generate AI answers for a stackoverflow question.
-- ✅ Display a ranking option for ranking search results by newest, oldest, stackoverflow scores, or LLM ranking (ask LLM for confidence scores out of 100).
-- ✅ Update GitHub repo readme.
-- ✅ Code cleanup
-- ✅ Dockerized deployment
-- ✅ Draw a nice architecture diagram (convert handwritten notes into a properly structured diagram)
+- [x] Change placeholder searchbar text to "Ask me a question"
+- [x] Fix search results coming from stackoverflow API
+- [x] Render search results properly on website. Should be accessible globally from anywhere
+- [x] Each search result should be clickable - render it in our custom page
+- [x] Recent 5 questions searched by a user should be cached in a database of your choice.
+- [x] Ask AI functionality to generate AI answers for a stackoverflow question.
+- [x] Display a ranking option for ranking search results by newest, oldest, stackoverflow scores, or LLM ranking (ask LLM for confidence scores out of 100).
+- [x] Update GitHub repo readme.
+- [x] Code cleanup
+- [x] Dockerized deployment
+- [x] Draw a nice architecture diagram (convert handwritten notes into a properly structured diagram)
 
 # Future tasks
 - [ ] Respect user's local timezone
