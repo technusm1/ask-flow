@@ -10,6 +10,7 @@
       <div class="flex-1 max-w-2xl">
         <form id="search-form" action={~p"/search"} method="get" class="relative" phx-hook="SearchShortcut">
           <input 
+            phx-mounted={JS.focus()}
             type="text" 
             name="q" 
             placeholder="Enter your question..."

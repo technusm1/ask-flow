@@ -11,6 +11,7 @@
 - [x] Code cleanup
 - [x] Dockerized deployment
 - [x] Draw a nice architecture diagram (convert handwritten notes into a properly structured diagram)
+- [x] UX improvement: Focus on a webpage element on page load. Based on German Velasco's suggestion, focus on the search bar on page load. Link: https://www.youtube.com/shorts/LUY9RE9HLQM
 
 # Future tasks
 - [ ] Respect user's local timezone
@@ -21,5 +22,4 @@
 - [ ] Setup CI
 - [ ] Use LLM to generate good search questions + tags for search term. Show it as "Did you mean?" on the search results page.
 - [ ] Best answer is a continuous effort, keep improving it by asking user feedback and adding that to LLM.
-- [ ] UX improvement: Focus on a webpage element on page load. Based on German Velasco's suggestion, focus on the search bar on page load. Link: https://www.youtube.com/shorts/LUY9RE9HLQM
-- Use Instructor library instead of ExOpenAI for getting structured responses from LLM. Instructor is a more generic library that can be used with any LLM model. Link: https://github.com/thmsmlr/instructor_ex
+- [ ] Use Instructor library instead of ExOpenAI for getting structured responses from LLM. Instructor is a more generic library that can be used with any LLM model. Link: https://github.com/thmsmlr/instructor_ex
