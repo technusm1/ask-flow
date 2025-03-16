@@ -12,9 +12,11 @@
 - [x] Dockerized deployment
 - [x] Draw a nice architecture diagram (convert handwritten notes into a properly structured diagram)
 - [x] UX improvement: Focus on a webpage element on page load. Based on German Velasco's suggestion, focus on the search bar on page load. Link: https://www.youtube.com/shorts/LUY9RE9HLQM
+- [x] Use liveview's `start_async` or `assign_async` helper to load LLM scores in the background rather than the present solution of starting and waiting on tasks. Its identical to the present solution but more idiomatic.
 
 # Future tasks
 - [ ] Respect user's local timezone
+- [ ] Keep model name configurable in the code
 - [ ] Rate limiter for calling stackoverflow API + LLM API, have configurable rate limits. Use hammer (https://github.com/ExHammer/hammer) as a rate limiter rather than re-inventing the wheel
 - [ ] Add documentation (using ExDoc)
 - [ ] Structured JSON logging
@@ -23,3 +25,4 @@
 - [ ] Use LLM to generate good search questions + tags for search term. Show it as "Did you mean?" on the search results page.
 - [ ] Best answer is a continuous effort, keep improving it by asking user feedback and adding that to LLM.
 - [ ] Use Instructor library instead of ExOpenAI for getting structured responses from LLM. Instructor is a more generic library that can be used with any LLM model. Link: https://github.com/thmsmlr/instructor_ex
+- [ ] Use `:hibernate_after` in Endpoint configuration for liveview to compress the liveview state and reduce memory usage. Already defaults to 15s, but try to customize it.
