@@ -36,7 +36,6 @@ defmodule AskFlowWeb.SearchViewLive do
      |> assign(:ai_generated_answer, %{})
      |> assign(:error, nil)
      |> assign(:llm_ranking_in_progress, false)
-     |> assign(:llm_ranking_task, nil)
      |> assign(:recent_questions, recent_questions)
      |> assign(:recent_searches, recent_searches)
      |> assign(:show_sort_dropdown, false)
@@ -149,15 +148,13 @@ defmodule AskFlowWeb.SearchViewLive do
         end
 
         if socket.assigns.sort_by in ["highest_llm_score", "lowest_llm_score"] do
-          task = Task.async(fn -> rank_by_llm(query, questions) end)
-
           {:noreply,
            socket
            |> assign(:search_timer, nil)
            |> assign(:loading, false)
            |> assign(:questions, questions)
            |> assign(:llm_ranking_in_progress, true)
-           |> assign(:llm_ranking_task, task)}
+           |> start_async(:llm_ranking, fn -> rank_by_llm(query, questions) end)}
         else
           sorted_questions = sort_questions(questions, socket.assigns.sort_by)
 
@@ -210,24 +207,21 @@ defmodule AskFlowWeb.SearchViewLive do
   end
 
   @impl true
-  def handle_info({ref, ranked_questions}, socket) when ref == socket.assigns.llm_ranking_task.ref do
-    Process.demonitor(ref, [:flush])
-
+  def handle_async(:llm_ranking, {:ok, ranked_questions}, socket) do
     sorted_questions = sort_questions(ranked_questions, socket.assigns.sort_by)
 
     {:noreply,
      socket
      |> assign(:questions, sorted_questions)
-     |> assign(:llm_ranking_in_progress, false)
-     |> assign(:llm_ranking_task, nil)}
+     |> assign(:llm_ranking_in_progress, false)}
   end
 
   @impl true
-  def handle_info({:DOWN, ref, :process, _pid, _reason}, socket) when ref == socket.assigns.llm_ranking_task.ref do
+  def handle_async(:llm_ranking, {:exit, reason}, socket) do
     {:noreply,
-     socket
-     |> assign(:llm_ranking_in_progress, false)
-     |> assign(:llm_ranking_task, nil)}
+    socket
+    |> assign(:llm_ranking_in_progress, false)
+    |> put_flash(:error, "Error ranking questions by LLM: #{inspect(reason)}")}
   end
 
   defp rank_by_llm(search_query, questions) do

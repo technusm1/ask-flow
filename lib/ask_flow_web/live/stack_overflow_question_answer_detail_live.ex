@@ -109,24 +109,19 @@ defmodule AskFlowWeb.StackOverflowQuestionAnswerDetailLive do
   end
 
   @impl true
-  def handle_info({ref, ranked_answers}, socket)
-      when ref == socket.assigns.llm_ranking_task.ref do
-    Process.demonitor(ref, [:flush])
-
+  def handle_async(:llm_ranking, {:ok, ranked_answers}, socket) do
     {:noreply,
      socket
      |> assign(:answers, ranked_answers)
-     |> assign(:llm_ranking_in_progress, false)
-     |> assign(:llm_ranking_task, nil)}
+     |> assign(:llm_ranking_in_progress, false)}
   end
 
   @impl true
-  def handle_info({:DOWN, ref, :process, _pid, _reason}, socket)
-      when ref == socket.assigns.llm_ranking_task.ref do
+  def handle_async(:llm_ranking, {:error, reason}, socket) do
     {:noreply,
      socket
-     |> assign(:llm_ranking_in_progress, false)
-     |> assign(:llm_ranking_task, nil)}
+     |> put_flash(:error, "Failed to rank answers: #{reason}")
+     |> assign(:llm_ranking_in_progress, false)}
   end
 
   @impl true
@@ -137,8 +132,6 @@ defmodule AskFlowWeb.StackOverflowQuestionAnswerDetailLive do
       {:ok, answers} ->
         Logger.info("Got #{length(answers)} answers for question #{question_id}")
 
-        task = Task.async(fn -> rank_by_llm(question, answers) end)
-
         {:noreply,
          socket
          |> assign(:answer_loading, false)
@@ -146,7 +139,7 @@ defmodule AskFlowWeb.StackOverflowQuestionAnswerDetailLive do
          |> assign(:answers, answers)
          |> assign(:recent_questions, [])
          |> assign(:llm_ranking_in_progress, true)
-         |> assign(:llm_ranking_task, task)
+         |> start_async(:llm_ranking, fn -> rank_by_llm(question, answers) end)
          |> push_event("sort_answers", %{"sort_option" => socket.assigns.sort_by})}
     end
   end
